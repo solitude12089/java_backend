@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <title>Spring Security Example</title>
+        <link rel="stylesheet" href="/adminlte/dist/css/adminlte.min.css">
+        <link rel="stylesheet" href="/adminlte/plugins/fontawesome-free/css/all.min.css">
+        <link rel="stylesheet" href="/adminlte/dist/css/adminlte.min.css">
+    </head>
+    <body>
+
+        </p>
+
+
+        <div class="content-wrapper">
+            <section class="content">
+                <h2>Welcome</h2><label>"${name}"</label>
+                <div class="row">
+                    <div class="col-12">
+                        <input id="txtTweet" class="form-control"/>
+                        <button id="btnTweet" class="tweet">Tweet</button>
+                    </div>
+                </div>
+            </section>
+            <section class="content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div  id="timeline" class="col-md-12">
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <!-- /.row -->
+
+
+                </div><!--/. container-fluid -->
+            </section>
+            <!-- /.content -->
+        </div>
+
+
+
+
+
+
+
+
+
+        <script src="/adminlte/plugins/jquery/jquery.min.js"></script>
+        <script src="/adminlte/plugins/jquery-ui/jquery-ui.min.js"></script>
+
+        <script src="/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <!-- overlayScrollbars -->
+        <script src="/adminlte/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+        <!-- AdminLTE App -->
+        <script src="/adminlte/dist/js/adminlte.js"></script>
+
+
+
+
+        <script type="text/javascript">
+           function getTimeLine() {
+                   $.ajax({
+                       async: false,
+                       type: "Get",
+                       dataType: "json",
+                       url: '/api/tweet/timeline',
+                       contentType: "application/json",
+                       success: function (result) {
+                           $('#timeline').empty();
+                           $.each(result,function(k,v){
+                               $attachmentHtml = '';
+                               if(v.mediaEntities!=null){
+                                   $.each(v.mediaEntities,function (mv,mk){
+                                       $imgHtml = '<img style="max-width: 500px;max-height: 500px;" src="'+mk.mediaURLHttps+'">';
+                                       $attachmentHtml = $attachmentHtml + $imgHtml;
+                                   })
+                               }
+                               $('#timeline').append('<div class="card">' +
+                                   '    <div class="card-header">' +
+                                   '        <img style="float: left;" src="'+v.user.biggerProfileImageURLHttps+'">'+
+                                   '        <label class="card-title">'+v.user.name+'</label>' +
+                                   '        <label>'+v.createdAt+'</label>'+
+                                   '        <div class="card-tools">' +
+                                   '          <button type="button" class="btn btn-tool" data-card-widget="collapse">' +
+                                   '            <i class="fas fa-minus"></i>' +
+                                   '          </button>' +
+                                   '          <button type="button" class="btn btn-tool" data-card-widget="remove">' +
+                                   '            <i class="fas fa-times"></i>' +
+                                   '          </button>' +
+                                   '        </div>' +
+                                   '    </div>' +
+                                   '    <div class="card-body">' +
+                                            v.text+$attachmentHtml+
+                                   '    </div>' +
+                                   '    <div>' +
+                                   '        <input class="form-control"/ replayId="'+v.id+'">'  +
+                                   '        <input type="button" class="btnReplay" value="Replay"/>'+
+                                   '    </div>'+
+                                   '</div>');
+
+
+                           })
+                           console.log(result);
+
+                           $('.btnReplay').click(function (){
+                               var content = $(this).parent().children('.form-control').val();
+                               var replayId = $(this).parent().children('.form-control').attr('replayid');
+                               if(content==""){
+                                   alert("Replay content empty.");
+                                   return;
+                               }
+
+                               $.ajax({
+                                   async: false,
+                                   type: "Post",
+                                   dataType: "json",
+                                   url: '/api/tweet/replay',
+                                   contentType: "application/json",
+                                   data: JSON.stringify({
+                                       "content": content,
+                                       "replayId" : replayId
+                                   }),
+                                   success: function (result) {
+                                       console.log(result);
+                                       alert('Success.');
+                                   }
+                               });
+                           });
+                       }
+                   });
+           }
+
+           getTimeLine();
+
+           $('#btnTweet').click(function (){
+               var txtTweet = $('#txtTweet').val();
+               if(txtTweet==""){
+                   alert("Pleas input content");
+                   return;
+               }
+
+               $.ajax({
+                   async: false,
+                   type: "Post",
+                   dataType: "json",
+                   url: '/api/tweet/tweet',
+                   contentType: "application/json",
+                   data: JSON.stringify({
+                       "content": txtTweet
+                   }),
+                   success: function (result) {
+                        console.log(result);
+                        alert('Success.');
+                   }
+               });
+           });
+
+
+        </script>
+    </body>
+</html>
