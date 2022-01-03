@@ -10,6 +10,7 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -66,9 +67,16 @@ public class TwitterServiceImpl implements TwitterService {
     }
 
     @Override
-    public ResponseList<Status> getTimeLine(AccessToken auth) throws TwitterException {
+    public Map<String, Status> getTimeLine(AccessToken auth) throws TwitterException {
         Twitter _twitter = GetTwitterInstance(auth);
-        return _twitter.getHomeTimeline();
+        var $r = _twitter.getHomeTimeline();
+
+        Map<String, Status> rtMap =  new HashMap<String, Status>();
+
+        for (Status status : $r) {
+            rtMap.put(String.valueOf(status.getId()), status);
+        }
+        return rtMap;
     }
 
     @Override
@@ -78,10 +86,16 @@ public class TwitterServiceImpl implements TwitterService {
         Status status = _twitter.updateStatus(statusUpdate);
         return status;
     }
-
-    public Status postReplay(AccessToken auth, String content, long tweet_id) throws TwitterException {
+    @Override
+    public Status postReply(AccessToken auth, String content, long tweet_id) throws TwitterException {
         Twitter _twitter = GetTwitterInstance(auth);
         return _twitter.updateStatus(new StatusUpdate(content).inReplyToStatusId(tweet_id));
+    }
+
+    @Override
+    public Status postRetweet(AccessToken auth, long tweet_id) throws  TwitterException {
+        Twitter _twitter = GetTwitterInstance(auth);
+        return _twitter.retweetStatus(tweet_id);
     }
 
 }
